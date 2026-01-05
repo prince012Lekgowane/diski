@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Kele vs Lele - Realistic 3D Soccer</title>
+    <title>Kele vs Lele - 3D Soccer Showdown</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Arial', sans-serif; 
-            background: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
             overflow: hidden;
             color: white;
         }
@@ -19,36 +19,249 @@
             left: 0;
             width: 100%;
             height: 100%;
+            display: none;
         }
         
+        /* MENU SCREENS */
+        .menu-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .menu-screen.hidden { display: none; }
+        
+        .menu-title {
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .menu-subtitle {
+            font-size: 20px;
+            color: #aaa;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .team-selection {
+            display: flex;
+            gap: 40px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .team-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid transparent;
+            border-radius: 20px;
+            padding: 30px;
+            width: 280px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .team-card.selected {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+            transform: scale(1.05);
+        }
+        
+        .team-card.pirates { border-color: #000; }
+        .team-card.pirates.selected { border-color: #FFD700; background: rgba(0, 0, 0, 0.3); }
+        
+        .team-card.sundowns { border-color: #FFD700; }
+        .team-card.sundowns.selected { background: rgba(255, 215, 0, 0.2); }
+        
+        .team-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+        }
+        
+        .pirates .team-logo {
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            border: 3px solid #FFD700;
+        }
+        
+        .sundowns .team-logo {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #000;
+        }
+        
+        .team-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .team-player {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        
+        .team-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        
+        .menu-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+        
+        .menu-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* INSTRUCTIONS */
+        .instructions-content {
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .instruction-section {
+            margin: 30px 0;
+        }
+        
+        .instruction-section h3 {
+            color: #FFD700;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .instruction-key {
+            background: #FFD700;
+            color: #000;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .instruction-desc {
+            flex: 1;
+        }
+        
+        /* GAME UI */
         #ui {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 30px;
-            border-radius: 15px;
-            border: 2px solid #00a8ff;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 3px solid #FFD700;
             backdrop-filter: blur(10px);
             z-index: 100;
             text-align: center;
-            min-width: 200px;
+            min-width: 300px;
         }
         
         #score {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            background: linear-gradient(45deg, #00a8ff, #0097e6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .score-team {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+        
+        .score-pirates {
+            background: linear-gradient(45deg, #000, #333);
+            border: 2px solid #FFD700;
+        }
+        
+        .score-sundowns {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
         }
         
         #time {
-            font-size: 14px;
-            margin-top: 5px;
-            color: #aaa;
+            font-size: 18px;
+            color: #FFD700;
+            font-weight: bold;
         }
         
         #controls {
@@ -70,70 +283,58 @@
             width: 140px;
             height: 140px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 3px solid #FFD700;
             position: relative;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
         }
         
         .joystick {
             width: 60px;
             height: 60px;
-            background: rgba(0, 168, 255, 0.8);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
             cursor: move;
         }
         
         .action-btn {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             background: linear-gradient(45deg, #ff3838, #ff0000);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid #FFD700;
             color: white;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 25px rgba(255, 56, 56, 0.5);
+            box-shadow: 0 0 30px rgba(255, 56, 56, 0.5);
             transition: transform 0.1s;
             user-select: none;
         }
         
         .action-btn:active {
-            transform: scale(0.95);
-        }
-        
-        #instructions {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            line-height: 1.6;
-            max-width: 250px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
         }
         
         #power-bar {
             position: absolute;
-            bottom: 20px;
+            bottom: 220px;
             left: 50%;
             transform: translateX(-50%);
-            width: 200px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
+            width: 250px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            border: 2px solid #FFD700;
             overflow: hidden;
             display: none;
         }
@@ -142,7 +343,7 @@
             height: 100%;
             background: linear-gradient(90deg, #00ff00, #ffaa00, #ff0000);
             width: 0%;
-            transition: width 0.1s;
+            transition: width 0.05s;
         }
         
         #goal-alert {
@@ -150,37 +351,204 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            font-size: 48px;
+            font-size: 64px;
             font-weight: bold;
-            background: linear-gradient(45deg, #00ff88, #00a8ff);
+            background: linear-gradient(45deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 255, 136, 0.7);
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.9);
             z-index: 1000;
             transition: transform 0.3s;
+            padding: 30px;
+            border-radius: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            -webkit-text-fill-color: #FFD700;
+        }
+        
+        #stamina-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            text-align: center;
+        }
+        
+        .stamina-label {
+            font-size: 14px;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        
+        .stamina-bg {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 5px;
+            border: 1px solid #FFD700;
+            overflow: hidden;
+        }
+        
+        .stamina-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ffaa00, #00ff00);
+            width: 100%;
+            transition: width 0.3s;
+        }
+        
+        .pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 100;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-title { font-size: 32px; }
+            .team-selection { gap: 20px; }
+            .team-card { width: 240px; padding: 20px; }
+            .instruction-item { flex-direction: column; text-align: center; }
+            .instruction-key { margin: 0 0 10px 0; }
         }
     </style>
 </head>
 <body>
+    <!-- TEAM SELECTION SCREEN -->
+    <div id="team-selection" class="menu-screen">
+        <h1 class="menu-title">⚽ KELE vs LELE ⚽</h1>
+        <p class="menu-subtitle">Choose Your Player & Team</p>
+        
+        <div class="team-selection">
+            <div class="team-card pirates" data-team="pirates" data-player="kele">
+                <div class="team-logo">☠️</div>
+                <div class="team-name">PIRATES</div>
+                <div class="team-player">Kele</div>
+                <div class="team-stats">
+                    <div class="stat">
+                        <div class="stat-value">85</div>
+                        <div class="stat-label">Speed</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">90</div>
+                        <div class="stat-label">Shooting</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">80</div>
+                        <div class="stat-label">Control</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-card sundowns" data-team="sundowns" data-player="lele">
+                <div class="team-logo">☀️</div>
+                <div class="team-name">SUNDOWNS</div>
+                <div class="team-player">Lele</div>
+                <div class="team-stats">
+                    <div class="stat">
+                        <div class="stat-value">88</div>
+                        <div class="stat-label">Speed</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">85</div>
+                        <div class="stat-label">Shooting</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">92</div>
+                        <div class="stat-label">Control</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="menu-btn" id="start-btn" disabled>SELECT A TEAM TO START</button>
+    </div>
+    
+    <!-- INSTRUCTIONS SCREEN -->
+    <div id="instructions-screen" class="menu-screen hidden">
+        <div class="instructions-content">
+            <h1 class="menu-title">HOW TO PLAY</h1>
+            
+            <div class="instruction-section">
+                <h3>🎮 Desktop Controls</h3>
+                <div class="instruction-item">
+                    <div class="instruction-key">W A S D</div>
+                    <div class="instruction-desc">Move your player around the pitch</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-key">SPACE</div>
+                    <div class="instruction-desc">Hold to charge power, release to shoot/pass</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-key">MOUSE</div>
+                    <div class="instruction-desc">Drag to rotate camera view</div>
+                </div>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>📱 Mobile Controls</h3>
+                <div class="instruction-item">
+                    <div class="instruction-key">JOYSTICK</div>
+                    <div class="instruction-desc">Drag the left joystick to move</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-key">SHOOT</div>
+                    <div class="instruction-desc">Hold the red button to charge, release to shoot</div>
+                </div>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>⚽ Game Rules</h3>
+                <div class="instruction-item">
+                    <div class="instruction-desc">• Score more goals than your opponent in 90 seconds</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-desc">• Watch your stamina bar - it drains when moving and shooting</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-desc">• Hold shoot button longer for more powerful shots</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-desc">• Get close to the ball to automatically control it</div>
+                </div>
+            </div>
+            
+            <button class="menu-btn" id="play-btn">LET'S PLAY! ⚽</button>
+        </div>
+    </div>
+    
+    <!-- GAME CONTAINER -->
     <div id="game-container"></div>
     
-    <div id="ui">
-        <div id="score">Kele 0 : 0 Lele</div>
-        <div id="time">Time: 90:00</div>
+    <!-- GAME UI -->
+    <div id="ui" style="display: none;">
+        <div id="score">
+            <span class="score-team score-pirates">Pirates 0</span>
+            :
+            <span class="score-team score-sundowns">Sundowns 0</span>
+        </div>
+        <div id="time">⏱️ 1:30</div>
     </div>
     
-    <div id="instructions">
-        <strong>CONTROLS:</strong><br>
-        • Move: WASD / Joystick<br>
-        • Shoot: Space / Shoot Button<br>
-        • Hold Space for power shot<br>
-        • Mouse: Look around
-    </div>
+    <button class="pause-btn" style="display: none;">⏸️ PAUSE</button>
     
     <div id="goal-alert">GOAL!</div>
     <div id="power-bar"><div id="power-fill"></div></div>
     
-    <div id="controls">
+    <div id="stamina-bar" style="display: none;">
+        <div class="stamina-label">STAMINA</div>
+        <div class="stamina-bg">
+            <div class="stamina-fill"></div>
+        </div>
+    </div>
+    
+    <div id="controls" style="display: none;">
         <div class="control-group">
             <div class="joystick-area" id="joystick-area">
                 <div class="joystick" id="joystick"></div>
@@ -193,651 +561,611 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cannon@0.20.0/build/cannon.min.js"></script>
     
     <script>
-        // GAME CONFIGURATION
-        const CONFIG = {
-            pitchSize: { width: 60, height: 40, depth: 1 },
-            matchDuration: 90, // seconds
-            maxPlayers: 11,
-            physicsSteps: 1/60,
-            gravity: -9.82
-        };
-
         // GAME STATE
-        let gameState = {
-            score: { kele: 0, lele: 0 },
-            time: CONFIG.matchDuration,
-            isPlaying: true,
+        let selectedTeam = null;
+        let selectedPlayer = null;
+        let gameStarted = false;
+        
+        const gameState = {
+            score: { pirates: 0, sundowns: 0 },
+            time: 90,
+            isPlaying: false,
             powerShot: 0,
-            isCharging: false
+            isCharging: false,
+            playerStamina: 100,
+            aiStamina: 100
         };
-
-        // PHYSICS WORLD
-        const world = new CANNON.World();
-        world.gravity.set(0, CONFIG.gravity, 0);
-        world.broadphase = new CANNON.NaiveBroadphase();
-        world.solver.iterations = 10;
-
-        // THREE.JS SETUP
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x0a2a3a, 10, 50);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 25, 30);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        document.getElementById('game-container').appendChild(renderer.domElement);
-
-        // CONTROLS
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.minDistance = 10;
-        controls.maxDistance = 50;
-        controls.maxPolarAngle = Math.PI / 2 - 0.1;
-
-        // LIGHTING
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        sunLight.position.set(50, 100, 50);
-        sunLight.castShadow = true;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        sunLight.shadow.camera.near = 0.5;
-        sunLight.shadow.camera.far = 500;
-        sunLight.shadow.camera.left = -100;
-        sunLight.shadow.camera.right = 100;
-        sunLight.shadow.camera.top = 100;
-        sunLight.shadow.camera.bottom = -100;
-        scene.add(sunLight);
-
-        // SKYBOX
-        const skyboxGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
-        const skyboxMaterial = new THREE.MeshBasicMaterial({
-            color: 0x87CEEB,
-            side: THREE.BackSide
-        });
-        const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
-        scene.add(skybox);
-
-        // PITCH WITH REALISTIC TEXTURE
-        const pitchTexture = new THREE.CanvasTexture(createPitchTexture());
-        const pitchMaterial = new THREE.MeshStandardMaterial({
-            color: 0x1e8f3a,
-            map: pitchTexture,
-            roughness: 0.8,
-            metalness: 0.1
-        });
-
-        const pitch = new THREE.Mesh(
-            new THREE.BoxGeometry(CONFIG.pitchSize.width, CONFIG.pitchSize.depth, CONFIG.pitchSize.height),
-            pitchMaterial
-        );
-        pitch.position.y = -CONFIG.pitchSize.depth / 2;
-        pitch.receiveShadow = true;
-        scene.add(pitch);
-
-        // PITCH PHYSICS
-        const pitchBody = new CANNON.Body({
-            mass: 0,
-            shape: new CANNON.Box(new CANNON.Vec3(
-                CONFIG.pitchSize.width / 2,
-                CONFIG.pitchSize.depth / 2,
-                CONFIG.pitchSize.height / 2
-            ))
-        });
-        pitchBody.position.copy(pitch.position);
-        world.addBody(pitchBody);
-
-        // GOAL POSTS
-        function createGoal(x, color) {
-            const goalGeometry = new THREE.BoxGeometry(8, 4, 2);
-            const goalMaterial = new THREE.MeshStandardMaterial({ color });
-            const goal = new THREE.Mesh(goalGeometry, goalMaterial);
-            goal.position.set(x, 2, 0);
-            goal.castShadow = true;
-            scene.add(goal);
-
-            // Goal physics
-            const goalBody = new CANNON.Body({
-                mass: 0,
-                shape: new CANNON.Box(new CANNON.Vec3(4, 2, 1))
+        
+        // TEAM SELECTION
+        document.querySelectorAll('.team-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                selectedTeam = this.dataset.team;
+                selectedPlayer = this.dataset.player;
+                
+                document.getElementById('start-btn').disabled = false;
+                document.getElementById('start-btn').textContent = 'CONTINUE TO INSTRUCTIONS';
             });
-            goalBody.position.copy(goal.position);
-            world.addBody(goalBody);
-
-            return { mesh: goal, body: goalBody };
-        }
-
-        const keleGoal = createGoal(-CONFIG.pitchSize.width / 2 - 4, 0x1e90ff);
-        const leleGoal = createGoal(CONFIG.pitchSize.width / 2 + 4, 0xff3333);
-
-        // STADIUM DETAILS
-        function createStadium() {
-            // Stands
-            const standsGeometry = new THREE.BoxGeometry(70, 5, 50);
-            const standsMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
-            const stands = new THREE.Mesh(standsGeometry, standsMaterial);
-            stands.position.set(0, -2.5, 0);
-            scene.add(stands);
-
-            // Crowd
-            for (let i = 0; i < 200; i++) {
-                const crowd = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.2, 0.2, Math.random() * 1.5 + 0.5, 8),
-                    new THREE.MeshStandardMaterial({
-                        color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5)
-                    })
+        });
+        
+        document.getElementById('start-btn').addEventListener('click', () => {
+            if (selectedTeam) {
+                document.getElementById('team-selection').classList.add('hidden');
+                document.getElementById('instructions-screen').classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('play-btn').addEventListener('click', () => {
+            document.getElementById('instructions-screen').classList.add('hidden');
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('ui').style.display = 'block';
+            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('stamina-bar').style.display = 'block';
+            document.querySelector('.pause-btn').style.display = 'block';
+            initGame();
+        });
+        
+        // GAME INITIALIZATION
+        function initGame() {
+            // Physics
+            const world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            
+            // Three.js
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 50, 200);
+            
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 20, 35);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('game-container').appendChild(renderer.domElement);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const sunLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            sunLight.position.set(50, 80, 30);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 1;
+            sunLight.shadow.camera.far = 200;
+            sunLight.shadow.camera.left = -50;
+            sunLight.shadow.camera.right = 50;
+            sunLight.shadow.camera.top = 50;
+            sunLight.shadow.camera.bottom = -50;
+            scene.add(sunLight);
+            
+            // Pitch
+            const pitchGeometry = new THREE.BoxGeometry(70, 1, 45);
+            const pitchMaterial = new THREE.MeshStandardMaterial({
+                color: 0x2d8f3d,
+                roughness: 0.8
+            });
+            const pitch = new THREE.Mesh(pitchGeometry, pitchMaterial);
+            pitch.receiveShadow = true;
+            pitch.position.y = -0.5;
+            scene.add(pitch);
+            
+            const pitchBody = new CANNON.Body({
+                mass: 0,
+                shape: new CANNON.Box(new CANNON.Vec3(35, 0.5, 22.5))
+            });
+            pitchBody.position.y = -0.5;
+            world.addBody(pitchBody);
+            
+            // Pitch markings
+            const markingsMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            
+            // Center line
+            const centerLine = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.2, 45),
+                markingsMaterial
+            );
+            centerLine.rotation.x = -Math.PI / 2;
+            centerLine.position.y = 0.02;
+            scene.add(centerLine);
+            
+            // Center circle
+            const centerCircle = new THREE.Mesh(
+                new THREE.RingGeometry(5, 5.2, 64),
+                markingsMaterial
+            );
+            centerCircle.rotation.x = -Math.PI / 2;
+            centerCircle.position.y = 0.02;
+            scene.add(centerCircle);
+            
+            // Goals
+            function createGoal(x, teamColor) {
+                const goalGroup = new THREE.Group();
+                
+                const postMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                
+                const netMaterial = new THREE.MeshStandardMaterial({
+                    color: teamColor,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                // Goal posts
+                const postGeometry = new THREE.CylinderGeometry(0.15, 0.15, 4, 16);
+                const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+                leftPost.position.set(x, 2, -4);
+                leftPost.castShadow = true;
+                
+                const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+                rightPost.position.set(x, 2, 4);
+                rightPost.castShadow = true;
+                
+                const crossbar = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.15, 0.15, 8, 16),
+                    postMaterial
                 );
-                crowd.position.set(
-                    (Math.random() * 65) - 32.5,
-                    0,
-                    (Math.random() * 45) - 22.5
+                crossbar.rotation.z = Math.PI / 2;
+                crossbar.position.set(x, 4, 0);
+                crossbar.castShadow = true;
+                
+                // Net
+                const net = new THREE.Mesh(
+                    new THREE.PlaneGeometry(8, 4),
+                    netMaterial
                 );
-                if (Math.abs(crowd.position.x) > 30) {
+                net.position.set(x > 0 ? x + 0.5 : x - 0.5, 2, 0);
+                net.rotation.y = x > 0 ? Math.PI / 2 : -Math.PI / 2;
+                
+                goalGroup.add(leftPost, rightPost, crossbar, net);
+                scene.add(goalGroup);
+                
+                // Goal physics (invisible walls)
+                const goalBody = new CANNON.Body({ mass: 0 });
+                goalBody.addShape(new CANNON.Box(new CANNON.Vec3(0.5, 2, 4)));
+                goalBody.position.set(x, 2, 0);
+                world.addBody(goalBody);
+                
+                return { mesh: goalGroup, body: goalBody, x: x };
+            }
+            
+            const piratesGoal = createGoal(-36, 0x000000);
+            const sundownsGoal = createGoal(36, 0xFFD700);
+            
+            // Stadium atmosphere
+            function createStadium() {
+                // Stands
+                const standsMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x2a2a2a,
+                    roughness: 0.9
+                });
+                
+                const stands = new THREE.Mesh(
+                    new THREE.BoxGeometry(80, 15, 60),
+                    standsMaterial
+                );
+                stands.position.y = 7;
+                stands.receiveShadow = true;
+                scene.add(stands);
+                
+                // Crowd
+                for (let i = 0; i < 300; i++) {
+                    const crowd = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.5, 1.5, 0.5),
+                        new THREE.MeshStandardMaterial({
+                            color: Math.random() > 0.5 ? 0x000000 : 0xFFD700
+                        })
+                    );
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 40 + Math.random() * 5;
+                    crowd.position.set(
+                        Math.cos(angle) * radius,
+                        Math.random() * 5 + 2,
+                        Math.sin(angle) * radius
+                    );
                     scene.add(crowd);
                 }
             }
-        }
-        createStadium();
-
-        // PLAYER CLASS
-        class Player {
-            constructor(team, position, color) {
-                this.team = team;
-                this.color = color;
-                this.speed = team === 'kele' ? 8 : 6;
-                this.kickPower = team === 'kele' ? 25 : 20;
-                this.stamina = 100;
-                this.radius = 0.8;
-                this.height = 1.8;
-
-                // Visual mesh
-                this.mesh = this.createPlayerMesh();
-                this.mesh.position.copy(position);
-                scene.add(this.mesh);
-
-                // Physics body
-                this.body = new CANNON.Body({
-                    mass: 75,
-                    shape: new CANNON.Cylinder(this.radius, this.radius, this.height, 16),
-                    linearDamping: 0.9,
-                    angularDamping: 0.8
-                });
-                this.body.position.copy(position);
-                this.body.allowSleep = false;
-                world.addBody(this.body);
-
-                // Animation
-                this.mixer = new THREE.AnimationMixer(this.mesh);
-                this.currentAction = null;
-            }
-
-            createPlayerMesh() {
-                const group = new THREE.Group();
-
-                // Body (cylinder)
-                const body = new THREE.Mesh(
-                    new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
-                    new THREE.MeshStandardMaterial({ color: this.color, roughness: 0.7 })
-                );
-                body.castShadow = true;
-                group.add(body);
-
-                // Head (sphere)
-                const head = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.4),
-                    new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
-                );
-                head.position.y = this.height / 2 + 0.3;
-                head.castShadow = true;
-                group.add(head);
-
-                return group;
-            }
-
-            update(deltaTime) {
-                // Sync physics with graphics
-                this.mesh.position.copy(this.body.position);
-                this.mesh.quaternion.copy(this.body.quaternion);
-
-                // Update animation
-                if (this.mixer) {
-                    this.mixer.update(deltaTime);
-                }
-
-                // Recover stamina
-                this.stamina = Math.min(100, this.stamina + deltaTime * 10);
-            }
-
-            kick(ball, power) {
-                if (this.stamina < 10) return false;
-
-                const direction = new THREE.Vector3();
-                ball.getWorldPosition(direction);
-                direction.sub(this.mesh.position).normalize();
-
-                const kickForce = new CANNON.Vec3(
-                    direction.x * this.kickPower * power,
-                    direction.y * this.kickPower * power + 5,
-                    direction.z * this.kickPower * power
-                );
-
-                ball.applyImpulse(kickForce, ball.position);
-
-                this.stamina -= 15 * power;
-                return true;
-            }
-
-            dispose() {
-                scene.remove(this.mesh);
-                world.removeBody(this.body);
-            }
-        }
-
-        // BALL
-        const ballGeometry = new THREE.SphereGeometry(0.4, 32, 32);
-        const ballMaterial = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            roughness: 0.2,
-            metalness: 0.8
-        });
-        const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
-        ballMesh.castShadow = true;
-        scene.add(ballMesh);
-
-        const ballBody = new CANNON.Body({
-            mass: 0.43, // FIFA standard ball mass
-            shape: new CANNON.Sphere(0.4),
-            linearDamping: 0.1,
-            angularDamping: 0.1,
-            material: new CANNON.Material({ friction: 0.1, restitution: 0.7 })
-        });
-        ballBody.position.set(0, 1, 0);
-        world.addBody(ballBody);
-
-        // PLAYERS
-        const players = {
-            kele: new Player('kele', new THREE.Vector3(-10, 1, 0), 0x1e90ff),
-            lele: new Player('lele', new THREE.Vector3(10, 1, 0), 0xff3333)
-        };
-
-        // INPUT HANDLING
-        const input = {
-            move: new THREE.Vector2(),
-            mouse: new THREE.Vector2(),
-            shooting: false,
-            charging: false
-        };
-
-        // Keyboard controls
-        const keys = {};
-        window.addEventListener('keydown', (e) => {
-            keys[e.code] = true;
-            if (e.code === 'Space') {
-                input.charging = true;
-                document.getElementById('power-bar').style.display = 'block';
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            keys[e.code] = false;
-            if (e.code === 'Space') {
-                input.shooting = true;
-                input.charging = false;
-                document.getElementById('power-bar').style.display = 'none';
-                document.getElementById('power-fill').style.width = '0%';
-            }
-        });
-
-        // Mouse movement for camera
-        window.addEventListener('mousemove', (e) => {
-            input.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-            input.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-        });
-
-        // Touch controls for mobile
-        let joystickActive = false;
-        const joystickArea = document.getElementById('joystick-area');
-        const joystick = document.getElementById('joystick');
-
-        joystickArea.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            joystickActive = true;
-        });
-
-        joystickArea.addEventListener('touchmove', (e) => {
-            if (!joystickActive) return;
-            e.preventDefault();
+            createStadium();
             
-            const touch = e.touches[0];
-            const rect = joystickArea.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+            // Ball
+            const ballGeometry = new THREE.SphereGeometry(0.45, 32, 32);
+            const ballMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.3,
+                metalness: 0.7
+            });
+            const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+            ballMesh.castShadow = true;
+            scene.add(ballMesh);
             
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxDistance = rect.width / 2 - 30;
-            
-            if (distance > maxDistance) {
-                dx = (dx / distance) * maxDistance;
-                dy = (dy / distance) * maxDistance;
-            }
-            
-            joystick.style.transform = `translate(${dx}px, ${dy}px)`;
-            input.move.x = dx / maxDistance;
-            input.move.y = dy / maxDistance;
-        });
-
-        joystickArea.addEventListener('touchend', () => {
-            joystickActive = false;
-            joystick.style.transform = 'translate(-50%, -50%)';
-            input.move.set(0, 0);
-        });
-
-        // Shoot button
-        document.getElementById('shoot-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            input.charging = true;
-            document.getElementById('power-bar').style.display = 'block';
-        });
-
-        document.getElementById('shoot-btn').addEventListener('touchend', (e) => {
-            e.preventDefault();
-            input.shooting = true;
-            input.charging = false;
-            document.getElementById('power-bar').style.display = 'none';
-            document.getElementById('power-fill').style.width = '0%';
-        });
-
-        // GAME LOGIC
-        function updatePlayerMovement(deltaTime) {
-            const player = players.kele;
-            
-            // Combine keyboard and joystick input
-            let moveX = 0;
-            let moveZ = 0;
-            
-            if (keys['KeyD']) moveX += 1;
-            if (keys['KeyA']) moveX -= 1;
-            if (keys['KeyW']) moveZ -= 1;
-            if (keys['KeyS']) moveZ += 1;
-            
-            if (input.move.length() > 0.1) {
-                moveX += input.move.x;
-                moveZ += input.move.y;
-            }
-            
-            // Normalize movement vector
-            const moveVector = new THREE.Vector2(moveX, moveZ);
-            if (moveVector.length() > 1) {
-                moveVector.normalize();
-            }
-            
-            // Apply movement force
-            const force = new CANNON.Vec3(
-                moveVector.x * player.speed * player.stamina / 100,
-                0,
-                moveVector.y * player.speed * player.stamina / 100
-            );
-            
-            player.body.applyForce(force, player.body.position);
-            
-            // Rotate player towards movement
-            if (moveVector.length() > 0.1) {
-                const angle = Math.atan2(moveVector.x, moveVector.y);
-                player.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
-            }
-        }
-
-        function updateAI() {
-            const ai = players.lele;
-            const ballPos = ballBody.position;
-            const aiPos = ai.body.position;
-            
-            // Calculate direction to ball
-            const toBall = new CANNON.Vec3();
-            toBall.copy(ballPos).vsub(aiPos);
-            const distance = toBall.length();
-            
-            toBall.normalize();
-            
-            if (distance > 2) {
-                // Move towards ball
-                const speed = ai.speed * (ai.stamina / 100);
-                const force = new CANNON.Vec3(
-                    toBall.x * speed * 0.5,
-                    0,
-                    toBall.z * speed * 0.5
-                );
-                ai.body.applyForce(force, aiPos);
-                
-                // Rotate towards ball
-                const angle = Math.atan2(toBall.x, toBall.z);
-                ai.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
-            } else if (distance < 1.5) {
-                // Kick the ball towards opponent's goal
-                const kickDirection = new CANNON.Vec3(
-                    ballPos.x < 0 ? 1 : -1,
-                    0.2,
-                    (Math.random() - 0.5) * 0.5
-                );
-                kickDirection.normalize();
-                
-                const kickForce = new CANNON.Vec3(
-                    kickDirection.x * ai.kickPower * 0.8,
-                    kickDirection.y * ai.kickPower * 0.8,
-                    kickDirection.z * ai.kickPower * 0.8
-                );
-                
-                ballBody.applyImpulse(kickForce, ballPos);
-                ai.stamina -= 15;
-            }
-        }
-
-        function updatePowerShot() {
-            if (input.charging) {
-                gameState.powerShot += 1;
-                if (gameState.powerShot > 100) gameState.powerShot = 100;
-                document.getElementById('power-fill').style.width = gameState.powerShot + '%';
-            }
-            
-            if (input.shooting) {
-                const power = gameState.powerShot / 100;
-                if (players.kele.kick(ballBody, power)) {
-                    // Visual feedback for kick
-                    const kickEffect = new THREE.PointLight(0x00ff00, 2, 3);
-                    kickEffect.position.copy(players.kele.mesh.position);
-                    scene.add(kickEffect);
-                    
-                    setTimeout(() => scene.remove(kickEffect), 200);
-                }
-                
-                input.shooting = false;
-                gameState.powerShot = 0;
-            }
-        }
-
-        function checkGoals() {
-            const ballPos = ballBody.position;
-            
-            if (ballPos.x < -CONFIG.pitchSize.width / 2 - 2) {
-                // Lele scores
-                gameState.score.lele++;
-                showGoalAlert('LELE SCORES!');
-                resetBall();
-            } else if (ballPos.x > CONFIG.pitchSize.width / 2 + 2) {
-                // Kele scores
-                gameState.score.kele++;
-                showGoalAlert('KELE SCORES!');
-                resetBall();
-            }
-            
-            // Update score display
-            document.getElementById('score').innerHTML = 
-                `Kele ${gameState.score.kele} : ${gameState.score.lele} Lele`;
-        }
-
-        function showGoalAlert(message) {
-            const alert = document.getElementById('goal-alert');
-            alert.textContent = message;
-            alert.style.transform = 'translate(-50%, -50%) scale(1)';
-            
-            setTimeout(() => {
-                alert.style.transform = 'translate(-50%, -50%) scale(0)';
-            }, 2000);
-        }
-
-        function resetBall() {
+            const ballBody = new CANNON.Body({
+                mass: 0.45,
+                shape: new CANNON.Sphere(0.45),
+                linearDamping: 0.1,
+                angularDamping: 0.1
+            });
             ballBody.position.set(0, 1, 0);
-            ballBody.velocity.set(0, 0, 0);
-            ballBody.angularVelocity.set(0, 0, 0);
+            world.addBody(ballBody);
             
-            players.kele.body.position.set(-10, 1, 0);
-            players.kele.body.velocity.set(0, 0, 0);
-            players.lele.body.position.set(10, 1, 0);
-            players.lele.body.velocity.set(0, 0, 0);
-        }
-
-        function createPitchTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 1024;
-            const ctx = canvas.getContext('2d');
-            
-            // Grass base
-            ctx.fillStyle = '#1e8f3a';
-            ctx.fillRect(0, 0, 1024, 1024);
-            
-            // Grass pattern
-            for (let i = 0; i < 20000; i++) {
-                const x = Math.random() * 1024;
-                const y = Math.random() * 1024;
-                const length = Math.random() * 3 + 1;
-                const angle = Math.random() * Math.PI;
-                
-                ctx.strokeStyle = `rgba(20, 120, 40, ${Math.random() * 0.5 + 0.3})`;
-                ctx.lineWidth = Math.random() * 0.5 + 0.2;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(
-                    x + Math.cos(angle) * length,
-                    y + Math.sin(angle) * length
-                );
-                ctx.stroke();
-            }
-            
-            // Pitch markings
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 4;
-            
-            // Center circle
-            ctx.beginPath();
-            ctx.arc(512, 512, 100, 0, Math.PI * 2);
-            ctx.stroke();
-            
-            // Center line
-            ctx.beginPath();
-            ctx.moveTo(512, 0);
-            ctx.lineTo(512, 1024);
-            ctx.stroke();
-            
-            return canvas;
-        }
-
-        // GAME LOOP
-        let clock = new THREE.Clock();
-        let lastTime = 0;
-
-        function gameLoop(currentTime) {
-            requestAnimationFrame(gameLoop);
-            
-            const deltaTime = Math.min(clock.getDelta(), 0.1);
-            const elapsedTime = currentTime - lastTime;
-            
-            if (elapsedTime > 1000) {
-                gameState.time -= 1;
-                if (gameState.time <= 0) {
-                    gameState.isPlaying = false;
-                    gameState.time = 0;
+            // Player class
+            class Player {
+                constructor(team, startPos, isPlayer) {
+                    this.team = team;
+                    this.isPlayer = isPlayer;
+                    this.speed = team === 'pirates' ? 10 : 9;
+                    this.kickPower = team === 'pirates' ? 30 : 28;
+                    this.stamina = 100;
+                    
+                    const color = team === 'pirates' ? 0x000000 : 0xFFD700;
+                    
+                    // Player mesh
+                    this.mesh = new THREE.Group();
+                    
+                    // Body
+                    const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 16);
+                    const bodyMaterial = new THREE.MeshStandardMaterial({ color });
+                    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                    body.castShadow = true;
+                    this.mesh.add(body);
+                    
+                    // Head
+                    const head = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.35, 16, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+                    );
+                    head.position.y = 1.2;
+                    head.castShadow = true;
+                    this.mesh.add(head);
+                    
+                    // Number on back
+                    const number = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.3, 0.4),
+                        new THREE.MeshBasicMaterial({
+                            color: team === 'pirates' ? 0xFFD700 : 0x000000
+                        })
+                    );
+                    number.position.set(0, 0.5, -0.5);
+                    this.mesh.add(number);
+                    
+                    this.mesh.position.copy(startPos);
+                    scene.add(this.mesh);
+                    
+                    // Physics
+                    this.body = new CANNON.Body({
+                        mass: 80,
+                        shape: new CANNON.Cylinder(0.5, 0.5, 1.8, 16),
+                        linearDamping: 0.8,
+                        angularDamping: 0.9
+                    });
+                    this.body.position.copy(startPos);
+                    world.addBody(this.body);
                 }
                 
-                // Update time display
-                const minutes = Math.floor(gameState.time / 60);
-                const seconds = gameState.time % 60;
-                document.getElementById('time').textContent = 
-                    `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                update(deltaTime) {
+                    this.mesh.position.copy(this.body.position);
+                    this.mesh.quaternion.copy(this.body.quaternion);
+                    this.stamina = Math.min(100, this.stamina + deltaTime * 8);
+                }
                 
-                lastTime = currentTime;
+                move(direction, deltaTime) {
+                    if (this.stamina < 5) return;
+                    
+                    const force = new CANNON.Vec3(
+                        direction.x * this.speed * (this.stamina / 100),
+                        0,
+                        direction.z * this.speed * (this.stamina / 100)
+                    );
+                    this.body.applyForce(force, this.body.position);
+                    
+                    if (direction.length() > 0.1) {
+                        const angle = Math.atan2(direction.x, direction.z);
+                        this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
+                    }
+                    
+                    this.stamina -= deltaTime * 5;
+                }
+                
+                shoot(power) {
+                    if (this.stamina < 10) return false;
+                    
+                    const toBall = new CANNON.Vec3();
+                    toBall.copy(ballBody.position).vsub(this.body.position);
+                    const distance = toBall.length();
+                    
+                    if (distance < 3) {
+                        toBall.normalize();
+                        
+                        const kickForce = new CANNON.Vec3(
+                            toBall.x * this.kickPower * power,
+                            4 + power * 5,
+                            toBall.z * this.kickPower * power
+                        );
+                        
+                        ballBody.applyImpulse(kickForce, ballBody.position);
+                        this.stamina -= 15 * power;
+                        return true;
+                    }
+                    return false;
+                }
             }
             
-            if (!gameState.isPlaying) return;
+            // Create players based on selection
+            const playerStartPos = selectedTeam === 'pirates' ?
+                new THREE.Vector3(-15, 1, 0) :
+                new THREE.Vector3(15, 1, 0);
             
-            // Update physics
-            world.step(CONFIG.physicsSteps, deltaTime, 3);
+            const aiStartPos = selectedTeam === 'pirates' ?
+                new THREE.Vector3(15, 1, 0) :
+                new THREE.Vector3(-15, 1, 0);
             
-            // Update game logic
-            updatePlayerMovement(deltaTime);
-            updateAI();
-            updatePowerShot();
-            checkGoals();
+            const player = new Player(selectedTeam, playerStartPos, true);
+            const ai = new Player(selectedTeam === 'pirates' ? 'sundowns' : 'pirates', aiStartPos, false);
             
-            // Sync ball graphics with physics
-            ballMesh.position.copy(ballBody.position);
-            ballMesh.quaternion.copy(ballBody.quaternion);
+            // Input handling
+            const input = {
+                move: new THREE.Vector2(),
+                shooting: false,
+                charging: false
+            };
             
-            // Update players
-            players.kele.update(deltaTime);
-            players.lele.update(deltaTime);
+            const keys = {};
             
-            // Update camera focus
-            const targetPos = new THREE.Vector3();
-            targetPos.lerpVectors(
-                players.kele.mesh.position,
-                ballMesh.position,
-                0.3
-            );
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space' && !input.charging) {
+                    input.charging = true;
+                    document.getElementById('power-bar').style.display = 'block';
+                }
+            });
             
-            camera.lookAt(targetPos);
-            controls.update();
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+                if (e.code === 'Space' && input.charging) {
+                    input.shooting = true;
+                    input.charging = false;
+                }
+            });
             
-            renderer.render(scene, camera);
-        }
-
-        // RESIZE HANDLER
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // START GAME
-        gameLoop();
-
-        // AUDIO (would need actual audio files)
-        function playSound(soundName) {
-            // Implement sound playback here
-            console.log(`Playing sound: ${soundName}`);
-        }
-
-        // TOUCH PREVENTION
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.id === 'joystick-area' || e.target.id === 'shoot-btn') {
+            // Joystick
+            let joystickActive = false;
+            const joystickArea = document.getElementById('joystick-area');
+            const joystick = document.getElementById('joystick');
+            
+            joystickArea.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                joystickActive = true;
+            });
+            
+            joystickArea.addEventListener('touchmove', (e) => {
+                if (!joystickActive) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const rect = joystickArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const maxDistance = rect.width / 2 - 30;
+                
+                if (distance > maxDistance) {
+                    dx = (dx / distance) * maxDistance;
+                    dy = (dy / distance) * maxDistance;
+                }
+                
+                joystick.style.transform = `translate(${dx}px, ${dy}px)`;
+                input.move.x = dx / maxDistance;
+                input.move.y = dy / maxDistance;
+            });
+            
+            joystickArea.addEventListener('touchend', () => {
+                joystickActive = false;
+                joystick.style.transform = 'translate(0, 0)';
+                input.move.set(0, 0);
+            });
+            
+            // Shoot button
+            const shootBtn = document.getElementById('shoot-btn');
+            shootBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!input.charging) {
+                    input.charging = true;
+                    document.getElementById('power-bar').style.display = 'block';
+                }
+            });
+            
+            shootBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                if (input.charging) {
+                    input.shooting = true;
+                    input.charging = false;
+                }
+            });
+            
+            // Game logic
+            function updatePlayer(deltaTime) {
+                let moveX = 0;
+                let moveZ = 0;
+                
+                if (keys['KeyD']) moveX += 1;
+                if (keys['KeyA']) moveX -= 1;
+                if (keys['KeyS']) moveZ += 1;
+                if (keys['KeyW']) moveZ -= 1;
+                
+                if (input.move.length() > 0.1) {
+                    moveX += input.move.x;
+                    moveZ += input.move.y;
+                }
+                
+                const moveDir = new THREE.Vector3(moveX, 0, moveZ);
+                if (moveDir.length() > 1) moveDir.normalize();
+                
+                player.move(moveDir, deltaTime);
+                gameState.playerStamina = player.stamina;
             }
-        }, { passive: false });
-
+            
+            function updateAI() {
+                const toBall = new CANNON.Vec3();
+                toBall.copy(ballBody.position).vsub(ai.body.position);
+                const distance = toBall.length();
+                
+                if (distance > 2) {
+                    const moveDir = new THREE.Vector3(toBall.x, 0, toBall.z);
+                    moveDir.normalize();
+                    ai.move(moveDir, 0.016);
+                } else if (distance < 2.5 && ai.stamina > 20) {
+                    ai.shoot(0.7 + Math.random() * 0.3);
+                }
+                
+                gameState.aiStamina = ai.stamina;
+            }
+            
+            function updateShooting() {
+                if (input.charging) {
+                    gameState.powerShot = Math.min(100, gameState.powerShot + 2);
+                    document.getElementById('power-fill').style.width = gameState.powerShot + '%';
+                }
+                
+                if (input.shooting) {
+                    const power = Math.max(0.3, gameState.powerShot / 100);
+                    player.shoot(power);
+                    
+                    input.shooting = false;
+                    gameState.powerShot = 0;
+                    document.getElementById('power-bar').style.display = 'none';
+                    document.getElementById('power-fill').style.width = '0%';
+                }
+            }
+            
+            function checkGoals() {
+                const ballPos = ballBody.position;
+                
+                if (ballPos.x < -35 && Math.abs(ballPos.z) < 4 && ballPos.y < 4) {
+                    gameState.score.sundowns++;
+                    showGoal('SUNDOWNS GOAL! ☀️');
+                    resetPositions();
+                } else if (ballPos.x > 35 && Math.abs(ballPos.z) < 4 && ballPos.y < 4) {
+                    gameState.score.pirates++;
+                    showGoal('PIRATES GOAL! ☠️');
+                    resetPositions();
+                }
+                
+                updateScoreDisplay();
+            }
+            
+            function showGoal(text) {
+                const alert = document.getElementById('goal-alert');
+                alert.textContent = text;
+                alert.style.transform = 'translate(-50%, -50%) scale(1)';
+                setTimeout(() => {
+                    alert.style.transform = 'translate(-50%, -50%) scale(0)';
+                }, 2000);
+            }
+            
+            function updateScoreDisplay() {
+                document.querySelector('.score-pirates').textContent = `Pirates ${gameState.score.pirates}`;
+                document.querySelector('.score-sundowns').textContent = `Sundowns ${gameState.score.sundowns}`;
+            }
+            
+            function resetPositions() {
+                ballBody.position.set(0, 1, 0);
+                ballBody.velocity.set(0, 0, 0);
+                ballBody.angularVelocity.set(0, 0, 0);
+                
+                player.body.position.copy(playerStartPos);
+                player.body.velocity.set(0, 0, 0);
+                ai.body.position.copy(aiStartPos);
+                ai.body.velocity.set(0, 0, 0);
+            }
+            
+            // Game loop
+            const clock = new THREE.Clock();
+            let lastSecond = 0;
+            gameState.isPlaying = true;
+            
+            function animate() {
+                if (!gameState.isPlaying) return;
+                requestAnimationFrame(animate);
+                
+                const deltaTime = Math.min(clock.getDelta(), 0.1);
+                const elapsedTime = clock.getElapsedTime();
+                
+                if (Math.floor(elapsedTime) > lastSecond) {
+                    gameState.time--;
+                    lastSecond = Math.floor(elapsedTime);
+                    
+                    const minutes = Math.floor(gameState.time / 60);
+                    const seconds = gameState.time % 60;
+                    document.getElementById('time').textContent =
+                        `⏱️ ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (gameState.time <= 0) {
+                        endGame();
+                    }
+                }
+                
+                world.step(1/60, deltaTime, 3);
+                
+                updatePlayer(deltaTime);
+                updateAI();
+                updateShooting();
+                checkGoals();
+                
+                ballMesh.position.copy(ballBody.position);
+                ballMesh.quaternion.copy(ballBody.quaternion);
+                
+                player.update(deltaTime);
+                ai.update(deltaTime);
+                
+                // Update stamina bar
+                document.querySelector('.stamina-fill').style.width = gameState.playerStamina + '%';
+                
+                // Camera follow
+                camera.position.x = player.mesh.position.x * 0.3;
+                camera.position.z = player.mesh.position.z * 0.3 + 35;
+                camera.lookAt(player.mesh.position);
+                
+                renderer.render(scene, camera);
+            }
+            
+            function endGame() {
+                gameState.isPlaying = false;
+                const winner = gameState.score.pirates > gameState.score.sundowns ?
+                    'PIRATES WIN! ☠️' :
+                    gameState.score.sundowns > gameState.score.pirates ?
+                    'SUNDOWNS WIN! ☀️' :
+                    'DRAW!';
+                
+                showGoal(`FULL TIME! ${winner}`);
+            }
+            
+            animate();
+            
+            // Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
     </script>
 </body>
 </html>
