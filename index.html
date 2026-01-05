@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Kele vs Lele – Advanced</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+body { margin:0; overflow:hidden; font-family:Arial; background:#000; }
+#ui {
+  position:absolute; top:10px; left:50%; transform:translateX(-50%);
+  color:white; font-size:20px; background:rgba(0,0,0,.6);
+  padding:8px 18px; border-radius:10px;
+}
+#mobile {
+  position:absolute; bottom:20px; left:20px; width:120px; height:120px;
+  border-radius:50%; background:rgba(255,255,255,0.1);
+}
+#stick {
+  width:50px; height:50px; background:#1e90ff;
+  border-radius:50%; position:absolute; top:35px; left:35px;
+}
+#shoot {
+  position:absolute; bottom:40px; right:30px;
+  width:80px; height:80px; border-radius:50%;
+  background:#ff3333; color:white;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">Kele 0 : 0 Lele</div>
+<div id="mobile"><div id="stick"></div></div>
+<div id="shoot">SHOOT</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script>
+/* SCENE */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b6623);
+
+/* CAMERA */
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+
+/* RENDERER */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+/* LIGHTS */
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(10,20,10);
+scene.add(sun);
+
+/* PITCH */
+const pitch = new THREE.Mesh(
+  new THREE.PlaneGeometry(60,40),
+  new THREE.MeshStandardMaterial({ color:0x1e8f3a })
+);
+pitch.rotation.x = -Math.PI/2;
+scene.add(pitch);
+
+/* STADIUM */
+for(let i=0;i<40;i++){
+  const crowd = new THREE.Mesh(
+    new THREE.BoxGeometry(1,Math.random()*2+1,1),
+    new THREE.MeshStandardMaterial({ color:0x444444 })
+  );
+  crowd.position.set((Math.random()*70)-35,1,(Math.random()*50)-25);
+  if(Math.abs(crowd.position.x)>28) scene.add(crowd);
+}
+
+/* PLAYERS */
+function player(color,x){
+  const p = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.6,1.4),
+    new THREE.MeshStandardMaterial({ color })
+  );
+  p.position.set(x,1,0);
+  scene.add(p);
+  return p;
+}
+const kele = player(0x1e90ff,-10);
+const lele = player(0xff3333,10);
+
+/* BALL */
+const ball = new THREE.Mesh(
+  new THREE.SphereGeometry(0.4,32,32),
+  new THREE.MeshStandardMaterial({ color:0xffffff })
+);
+ball.position.y=0.4;
+scene.add(ball);
+let ballVel = new THREE.Vector3();
+
+/* SCORE */
+let keleScore=0, leleScore=0;
+const ui=document.getElementById("ui");
+
+/* INPUT */
+const keys={};
+onkeydown=e=>keys[e.code]=true;
+onkeyup=e=>keys[e.code]=false;
+
+/* MOBILE */
+let joy={x:0,z:0};
+const stick=document.getElementById("stick");
+document.getElementById("mobile").ontouchmove=e=>{
+  const t=e.touches[0];
+  joy.x=(t.clientX-innerWidth*0.15)/40;
+  joy.z=(t.clientY-innerHeight*0.75)/40;
+  stick.style.transform=`translate(${joy.x*20}px,${joy.z*20}px)`;
+};
+
+/* GAME LOOP */
+function animate(){
+  requestAnimationFrame(animate);
+
+  /* KELE MOVEMENT */
+  kele.position.x += (keys.KeyD?0.2:keys.KeyA?-0.2:joy.x*0.15);
+  kele.position.z += (keys.KeyS?0.2:keys.KeyW?-0.2:joy.z*0.15);
+
+  /* LELE AI */
+  const aiDir = ball.position.clone().sub(lele.position);
+  if(aiDir.length()>1){
+    aiDir.normalize();
+    lele.position.add(aiDir.multiplyScalar(0.12));
+  }
+
+  /* ANIMATION */
+  kele.rotation.z = Math.sin(Date.now()*0.005)*0.05;
+  lele.rotation.z = Math.cos(Date.now()*0.005)*0.05;
+
+  /* SHOOT */
+  if((keys.Space || joy.x!==0) && kele.position.distanceTo(ball.position)<1.6){
+    ballVel.copy(ball.position).sub(kele.position).normalize().multiplyScalar(1);
+  }
+  if(lele.position.distanceTo(ball.position)<1.6){
+    ballVel.copy(ball.position).sub(lele.position).normalize().multiplyScalar(0.9);
+  }
+
+  /* BALL */
+  ball.position.add(ballVel);
+  ballVel.multiplyScalar(0.97);
+
+  /* GOALS */
+  if(ball.position.x<-28){ leleScore++; reset(); }
+  if(ball.position.x>28){ keleScore++; reset(); }
+
+  ui.innerText=`Kele ${keleScore} : ${leleScore} Lele`;
+
+  /* CAMERA */
+  camera.position.set(ball.position.x,16,ball.position.z+20);
+  camera.lookAt(ball.position);
+
+  renderer.render(scene,camera);
+}
+function reset(){
+  ball.position.set(0,0.4,0);
+  ballVel.set(0,0,0);
+  kele.position.set(-10,1,0);
+  lele.position.set(10,1,0);
+}
+animate();
+</script>
+</body>
+</html>
