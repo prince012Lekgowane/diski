@@ -1,168 +1,843 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Kele vs Lele – Advanced</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<style>
-body { margin:0; overflow:hidden; font-family:Arial; background:#000; }
-#ui {
-  position:absolute; top:10px; left:50%; transform:translateX(-50%);
-  color:white; font-size:20px; background:rgba(0,0,0,.6);
-  padding:8px 18px; border-radius:10px;
-}
-#mobile {
-  position:absolute; bottom:20px; left:20px; width:120px; height:120px;
-  border-radius:50%; background:rgba(255,255,255,0.1);
-}
-#stick {
-  width:50px; height:50px; background:#1e90ff;
-  border-radius:50%; position:absolute; top:35px; left:35px;
-}
-#shoot {
-  position:absolute; bottom:40px; right:30px;
-  width:80px; height:80px; border-radius:50%;
-  background:#ff3333; color:white;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:bold;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Kele vs Lele - Realistic 3D Soccer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background: #0a0a0a;
+            overflow: hidden;
+            color: white;
+        }
+        
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 2px solid #00a8ff;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        #score {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00a8ff, #0097e6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 168, 255, 0.5);
+        }
+        
+        #time {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .joystick-area {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .joystick {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 168, 255, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.5);
+            cursor: move;
+        }
+        
+        .action-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff3838, #ff0000);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(255, 56, 56, 0.5);
+            transition: transform 0.1s;
+            user-select: none;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+            max-width: 250px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #power-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        #power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffaa00, #ff0000);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        #goal-alert {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 48px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #00a8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.7);
+            z-index: 1000;
+            transition: transform 0.3s;
+        }
+    </style>
 </head>
 <body>
+    <div id="game-container"></div>
+    
+    <div id="ui">
+        <div id="score">Kele 0 : 0 Lele</div>
+        <div id="time">Time: 90:00</div>
+    </div>
+    
+    <div id="instructions">
+        <strong>CONTROLS:</strong><br>
+        • Move: WASD / Joystick<br>
+        • Shoot: Space / Shoot Button<br>
+        • Hold Space for power shot<br>
+        • Mouse: Look around
+    </div>
+    
+    <div id="goal-alert">GOAL!</div>
+    <div id="power-bar"><div id="power-fill"></div></div>
+    
+    <div id="controls">
+        <div class="control-group">
+            <div class="joystick-area" id="joystick-area">
+                <div class="joystick" id="joystick"></div>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <div class="action-btn" id="shoot-btn">SHOOT</div>
+        </div>
+    </div>
 
-<div id="ui">Kele 0 : 0 Lele</div>
-<div id="mobile"><div id="stick"></div></div>
-<div id="shoot">SHOOT</div>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon@0.20.0/build/cannon.min.js"></script>
+    
+    <script>
+        // GAME CONFIGURATION
+        const CONFIG = {
+            pitchSize: { width: 60, height: 40, depth: 1 },
+            matchDuration: 90, // seconds
+            maxPlayers: 11,
+            physicsSteps: 1/60,
+            gravity: -9.82
+        };
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-<script>
-/* SCENE */
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b6623);
+        // GAME STATE
+        let gameState = {
+            score: { kele: 0, lele: 0 },
+            time: CONFIG.matchDuration,
+            isPlaying: true,
+            powerShot: 0,
+            isCharging: false
+        };
 
-/* CAMERA */
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+        // PHYSICS WORLD
+        const world = new CANNON.World();
+        world.gravity.set(0, CONFIG.gravity, 0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 10;
 
-/* RENDERER */
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(innerWidth, innerHeight);
-document.body.appendChild(renderer.domElement);
+        // THREE.JS SETUP
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x0a2a3a, 10, 50);
 
-/* LIGHTS */
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const sun = new THREE.DirectionalLight(0xffffff, 1);
-sun.position.set(10,20,10);
-scene.add(sun);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 25, 30);
 
-/* PITCH */
-const pitch = new THREE.Mesh(
-  new THREE.PlaneGeometry(60,40),
-  new THREE.MeshStandardMaterial({ color:0x1e8f3a })
-);
-pitch.rotation.x = -Math.PI/2;
-scene.add(pitch);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('game-container').appendChild(renderer.domElement);
 
-/* STADIUM */
-for(let i=0;i<40;i++){
-  const crowd = new THREE.Mesh(
-    new THREE.BoxGeometry(1,Math.random()*2+1,1),
-    new THREE.MeshStandardMaterial({ color:0x444444 })
-  );
-  crowd.position.set((Math.random()*70)-35,1,(Math.random()*50)-25);
-  if(Math.abs(crowd.position.x)>28) scene.add(crowd);
-}
+        // CONTROLS
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 10;
+        controls.maxDistance = 50;
+        controls.maxPolarAngle = Math.PI / 2 - 0.1;
 
-/* PLAYERS */
-function player(color,x){
-  const p = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.6,1.4),
-    new THREE.MeshStandardMaterial({ color })
-  );
-  p.position.set(x,1,0);
-  scene.add(p);
-  return p;
-}
-const kele = player(0x1e90ff,-10);
-const lele = player(0xff3333,10);
+        // LIGHTING
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
 
-/* BALL */
-const ball = new THREE.Mesh(
-  new THREE.SphereGeometry(0.4,32,32),
-  new THREE.MeshStandardMaterial({ color:0xffffff })
-);
-ball.position.y=0.4;
-scene.add(ball);
-let ballVel = new THREE.Vector3();
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        sunLight.position.set(50, 100, 50);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 500;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        scene.add(sunLight);
 
-/* SCORE */
-let keleScore=0, leleScore=0;
-const ui=document.getElementById("ui");
+        // SKYBOX
+        const skyboxGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+        const skyboxMaterial = new THREE.MeshBasicMaterial({
+            color: 0x87CEEB,
+            side: THREE.BackSide
+        });
+        const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+        scene.add(skybox);
 
-/* INPUT */
-const keys={};
-onkeydown=e=>keys[e.code]=true;
-onkeyup=e=>keys[e.code]=false;
+        // PITCH WITH REALISTIC TEXTURE
+        const pitchTexture = new THREE.CanvasTexture(createPitchTexture());
+        const pitchMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1e8f3a,
+            map: pitchTexture,
+            roughness: 0.8,
+            metalness: 0.1
+        });
 
-/* MOBILE */
-let joy={x:0,z:0};
-const stick=document.getElementById("stick");
-document.getElementById("mobile").ontouchmove=e=>{
-  const t=e.touches[0];
-  joy.x=(t.clientX-innerWidth*0.15)/40;
-  joy.z=(t.clientY-innerHeight*0.75)/40;
-  stick.style.transform=`translate(${joy.x*20}px,${joy.z*20}px)`;
-};
+        const pitch = new THREE.Mesh(
+            new THREE.BoxGeometry(CONFIG.pitchSize.width, CONFIG.pitchSize.depth, CONFIG.pitchSize.height),
+            pitchMaterial
+        );
+        pitch.position.y = -CONFIG.pitchSize.depth / 2;
+        pitch.receiveShadow = true;
+        scene.add(pitch);
 
-/* GAME LOOP */
-function animate(){
-  requestAnimationFrame(animate);
+        // PITCH PHYSICS
+        const pitchBody = new CANNON.Body({
+            mass: 0,
+            shape: new CANNON.Box(new CANNON.Vec3(
+                CONFIG.pitchSize.width / 2,
+                CONFIG.pitchSize.depth / 2,
+                CONFIG.pitchSize.height / 2
+            ))
+        });
+        pitchBody.position.copy(pitch.position);
+        world.addBody(pitchBody);
 
-  /* KELE MOVEMENT */
-  kele.position.x += (keys.KeyD?0.2:keys.KeyA?-0.2:joy.x*0.15);
-  kele.position.z += (keys.KeyS?0.2:keys.KeyW?-0.2:joy.z*0.15);
+        // GOAL POSTS
+        function createGoal(x, color) {
+            const goalGeometry = new THREE.BoxGeometry(8, 4, 2);
+            const goalMaterial = new THREE.MeshStandardMaterial({ color });
+            const goal = new THREE.Mesh(goalGeometry, goalMaterial);
+            goal.position.set(x, 2, 0);
+            goal.castShadow = true;
+            scene.add(goal);
 
-  /* LELE AI */
-  const aiDir = ball.position.clone().sub(lele.position);
-  if(aiDir.length()>1){
-    aiDir.normalize();
-    lele.position.add(aiDir.multiplyScalar(0.12));
-  }
+            // Goal physics
+            const goalBody = new CANNON.Body({
+                mass: 0,
+                shape: new CANNON.Box(new CANNON.Vec3(4, 2, 1))
+            });
+            goalBody.position.copy(goal.position);
+            world.addBody(goalBody);
 
-  /* ANIMATION */
-  kele.rotation.z = Math.sin(Date.now()*0.005)*0.05;
-  lele.rotation.z = Math.cos(Date.now()*0.005)*0.05;
+            return { mesh: goal, body: goalBody };
+        }
 
-  /* SHOOT */
-  if((keys.Space || joy.x!==0) && kele.position.distanceTo(ball.position)<1.6){
-    ballVel.copy(ball.position).sub(kele.position).normalize().multiplyScalar(1);
-  }
-  if(lele.position.distanceTo(ball.position)<1.6){
-    ballVel.copy(ball.position).sub(lele.position).normalize().multiplyScalar(0.9);
-  }
+        const keleGoal = createGoal(-CONFIG.pitchSize.width / 2 - 4, 0x1e90ff);
+        const leleGoal = createGoal(CONFIG.pitchSize.width / 2 + 4, 0xff3333);
 
-  /* BALL */
-  ball.position.add(ballVel);
-  ballVel.multiplyScalar(0.97);
+        // STADIUM DETAILS
+        function createStadium() {
+            // Stands
+            const standsGeometry = new THREE.BoxGeometry(70, 5, 50);
+            const standsMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            const stands = new THREE.Mesh(standsGeometry, standsMaterial);
+            stands.position.set(0, -2.5, 0);
+            scene.add(stands);
 
-  /* GOALS */
-  if(ball.position.x<-28){ leleScore++; reset(); }
-  if(ball.position.x>28){ keleScore++; reset(); }
+            // Crowd
+            for (let i = 0; i < 200; i++) {
+                const crowd = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.2, 0.2, Math.random() * 1.5 + 0.5, 8),
+                    new THREE.MeshStandardMaterial({
+                        color: new THREE.Color().setHSL(Math.random(), 0.7, 0.5)
+                    })
+                );
+                crowd.position.set(
+                    (Math.random() * 65) - 32.5,
+                    0,
+                    (Math.random() * 45) - 22.5
+                );
+                if (Math.abs(crowd.position.x) > 30) {
+                    scene.add(crowd);
+                }
+            }
+        }
+        createStadium();
 
-  ui.innerText=`Kele ${keleScore} : ${leleScore} Lele`;
+        // PLAYER CLASS
+        class Player {
+            constructor(team, position, color) {
+                this.team = team;
+                this.color = color;
+                this.speed = team === 'kele' ? 8 : 6;
+                this.kickPower = team === 'kele' ? 25 : 20;
+                this.stamina = 100;
+                this.radius = 0.8;
+                this.height = 1.8;
 
-  /* CAMERA */
-  camera.position.set(ball.position.x,16,ball.position.z+20);
-  camera.lookAt(ball.position);
+                // Visual mesh
+                this.mesh = this.createPlayerMesh();
+                this.mesh.position.copy(position);
+                scene.add(this.mesh);
 
-  renderer.render(scene,camera);
-}
-function reset(){
-  ball.position.set(0,0.4,0);
-  ballVel.set(0,0,0);
-  kele.position.set(-10,1,0);
-  lele.position.set(10,1,0);
-}
-animate();
-</script>
+                // Physics body
+                this.body = new CANNON.Body({
+                    mass: 75,
+                    shape: new CANNON.Cylinder(this.radius, this.radius, this.height, 16),
+                    linearDamping: 0.9,
+                    angularDamping: 0.8
+                });
+                this.body.position.copy(position);
+                this.body.allowSleep = false;
+                world.addBody(this.body);
+
+                // Animation
+                this.mixer = new THREE.AnimationMixer(this.mesh);
+                this.currentAction = null;
+            }
+
+            createPlayerMesh() {
+                const group = new THREE.Group();
+
+                // Body (cylinder)
+                const body = new THREE.Mesh(
+                    new THREE.CylinderGeometry(this.radius, this.radius, this.height, 16),
+                    new THREE.MeshStandardMaterial({ color: this.color, roughness: 0.7 })
+                );
+                body.castShadow = true;
+                group.add(body);
+
+                // Head (sphere)
+                const head = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.4),
+                    new THREE.MeshStandardMaterial({ color: 0xFFDBAC })
+                );
+                head.position.y = this.height / 2 + 0.3;
+                head.castShadow = true;
+                group.add(head);
+
+                return group;
+            }
+
+            update(deltaTime) {
+                // Sync physics with graphics
+                this.mesh.position.copy(this.body.position);
+                this.mesh.quaternion.copy(this.body.quaternion);
+
+                // Update animation
+                if (this.mixer) {
+                    this.mixer.update(deltaTime);
+                }
+
+                // Recover stamina
+                this.stamina = Math.min(100, this.stamina + deltaTime * 10);
+            }
+
+            kick(ball, power) {
+                if (this.stamina < 10) return false;
+
+                const direction = new THREE.Vector3();
+                ball.getWorldPosition(direction);
+                direction.sub(this.mesh.position).normalize();
+
+                const kickForce = new CANNON.Vec3(
+                    direction.x * this.kickPower * power,
+                    direction.y * this.kickPower * power + 5,
+                    direction.z * this.kickPower * power
+                );
+
+                ball.applyImpulse(kickForce, ball.position);
+
+                this.stamina -= 15 * power;
+                return true;
+            }
+
+            dispose() {
+                scene.remove(this.mesh);
+                world.removeBody(this.body);
+            }
+        }
+
+        // BALL
+        const ballGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+        const ballMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.2,
+            metalness: 0.8
+        });
+        const ballMesh = new THREE.Mesh(ballGeometry, ballMaterial);
+        ballMesh.castShadow = true;
+        scene.add(ballMesh);
+
+        const ballBody = new CANNON.Body({
+            mass: 0.43, // FIFA standard ball mass
+            shape: new CANNON.Sphere(0.4),
+            linearDamping: 0.1,
+            angularDamping: 0.1,
+            material: new CANNON.Material({ friction: 0.1, restitution: 0.7 })
+        });
+        ballBody.position.set(0, 1, 0);
+        world.addBody(ballBody);
+
+        // PLAYERS
+        const players = {
+            kele: new Player('kele', new THREE.Vector3(-10, 1, 0), 0x1e90ff),
+            lele: new Player('lele', new THREE.Vector3(10, 1, 0), 0xff3333)
+        };
+
+        // INPUT HANDLING
+        const input = {
+            move: new THREE.Vector2(),
+            mouse: new THREE.Vector2(),
+            shooting: false,
+            charging: false
+        };
+
+        // Keyboard controls
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            if (e.code === 'Space') {
+                input.charging = true;
+                document.getElementById('power-bar').style.display = 'block';
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+            if (e.code === 'Space') {
+                input.shooting = true;
+                input.charging = false;
+                document.getElementById('power-bar').style.display = 'none';
+                document.getElementById('power-fill').style.width = '0%';
+            }
+        });
+
+        // Mouse movement for camera
+        window.addEventListener('mousemove', (e) => {
+            input.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            input.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Touch controls for mobile
+        let joystickActive = false;
+        const joystickArea = document.getElementById('joystick-area');
+        const joystick = document.getElementById('joystick');
+
+        joystickArea.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+        });
+
+        joystickArea.addEventListener('touchmove', (e) => {
+            if (!joystickActive) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const rect = joystickArea.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDistance = rect.width / 2 - 30;
+            
+            if (distance > maxDistance) {
+                dx = (dx / distance) * maxDistance;
+                dy = (dy / distance) * maxDistance;
+            }
+            
+            joystick.style.transform = `translate(${dx}px, ${dy}px)`;
+            input.move.x = dx / maxDistance;
+            input.move.y = dy / maxDistance;
+        });
+
+        joystickArea.addEventListener('touchend', () => {
+            joystickActive = false;
+            joystick.style.transform = 'translate(-50%, -50%)';
+            input.move.set(0, 0);
+        });
+
+        // Shoot button
+        document.getElementById('shoot-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            input.charging = true;
+            document.getElementById('power-bar').style.display = 'block';
+        });
+
+        document.getElementById('shoot-btn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            input.shooting = true;
+            input.charging = false;
+            document.getElementById('power-bar').style.display = 'none';
+            document.getElementById('power-fill').style.width = '0%';
+        });
+
+        // GAME LOGIC
+        function updatePlayerMovement(deltaTime) {
+            const player = players.kele;
+            
+            // Combine keyboard and joystick input
+            let moveX = 0;
+            let moveZ = 0;
+            
+            if (keys['KeyD']) moveX += 1;
+            if (keys['KeyA']) moveX -= 1;
+            if (keys['KeyW']) moveZ -= 1;
+            if (keys['KeyS']) moveZ += 1;
+            
+            if (input.move.length() > 0.1) {
+                moveX += input.move.x;
+                moveZ += input.move.y;
+            }
+            
+            // Normalize movement vector
+            const moveVector = new THREE.Vector2(moveX, moveZ);
+            if (moveVector.length() > 1) {
+                moveVector.normalize();
+            }
+            
+            // Apply movement force
+            const force = new CANNON.Vec3(
+                moveVector.x * player.speed * player.stamina / 100,
+                0,
+                moveVector.y * player.speed * player.stamina / 100
+            );
+            
+            player.body.applyForce(force, player.body.position);
+            
+            // Rotate player towards movement
+            if (moveVector.length() > 0.1) {
+                const angle = Math.atan2(moveVector.x, moveVector.y);
+                player.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
+            }
+        }
+
+        function updateAI() {
+            const ai = players.lele;
+            const ballPos = ballBody.position;
+            const aiPos = ai.body.position;
+            
+            // Calculate direction to ball
+            const toBall = new CANNON.Vec3();
+            toBall.copy(ballPos).vsub(aiPos);
+            const distance = toBall.length();
+            
+            toBall.normalize();
+            
+            if (distance > 2) {
+                // Move towards ball
+                const speed = ai.speed * (ai.stamina / 100);
+                const force = new CANNON.Vec3(
+                    toBall.x * speed * 0.5,
+                    0,
+                    toBall.z * speed * 0.5
+                );
+                ai.body.applyForce(force, aiPos);
+                
+                // Rotate towards ball
+                const angle = Math.atan2(toBall.x, toBall.z);
+                ai.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), angle);
+            } else if (distance < 1.5) {
+                // Kick the ball towards opponent's goal
+                const kickDirection = new CANNON.Vec3(
+                    ballPos.x < 0 ? 1 : -1,
+                    0.2,
+                    (Math.random() - 0.5) * 0.5
+                );
+                kickDirection.normalize();
+                
+                const kickForce = new CANNON.Vec3(
+                    kickDirection.x * ai.kickPower * 0.8,
+                    kickDirection.y * ai.kickPower * 0.8,
+                    kickDirection.z * ai.kickPower * 0.8
+                );
+                
+                ballBody.applyImpulse(kickForce, ballPos);
+                ai.stamina -= 15;
+            }
+        }
+
+        function updatePowerShot() {
+            if (input.charging) {
+                gameState.powerShot += 1;
+                if (gameState.powerShot > 100) gameState.powerShot = 100;
+                document.getElementById('power-fill').style.width = gameState.powerShot + '%';
+            }
+            
+            if (input.shooting) {
+                const power = gameState.powerShot / 100;
+                if (players.kele.kick(ballBody, power)) {
+                    // Visual feedback for kick
+                    const kickEffect = new THREE.PointLight(0x00ff00, 2, 3);
+                    kickEffect.position.copy(players.kele.mesh.position);
+                    scene.add(kickEffect);
+                    
+                    setTimeout(() => scene.remove(kickEffect), 200);
+                }
+                
+                input.shooting = false;
+                gameState.powerShot = 0;
+            }
+        }
+
+        function checkGoals() {
+            const ballPos = ballBody.position;
+            
+            if (ballPos.x < -CONFIG.pitchSize.width / 2 - 2) {
+                // Lele scores
+                gameState.score.lele++;
+                showGoalAlert('LELE SCORES!');
+                resetBall();
+            } else if (ballPos.x > CONFIG.pitchSize.width / 2 + 2) {
+                // Kele scores
+                gameState.score.kele++;
+                showGoalAlert('KELE SCORES!');
+                resetBall();
+            }
+            
+            // Update score display
+            document.getElementById('score').innerHTML = 
+                `Kele ${gameState.score.kele} : ${gameState.score.lele} Lele`;
+        }
+
+        function showGoalAlert(message) {
+            const alert = document.getElementById('goal-alert');
+            alert.textContent = message;
+            alert.style.transform = 'translate(-50%, -50%) scale(1)';
+            
+            setTimeout(() => {
+                alert.style.transform = 'translate(-50%, -50%) scale(0)';
+            }, 2000);
+        }
+
+        function resetBall() {
+            ballBody.position.set(0, 1, 0);
+            ballBody.velocity.set(0, 0, 0);
+            ballBody.angularVelocity.set(0, 0, 0);
+            
+            players.kele.body.position.set(-10, 1, 0);
+            players.kele.body.velocity.set(0, 0, 0);
+            players.lele.body.position.set(10, 1, 0);
+            players.lele.body.velocity.set(0, 0, 0);
+        }
+
+        function createPitchTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            
+            // Grass base
+            ctx.fillStyle = '#1e8f3a';
+            ctx.fillRect(0, 0, 1024, 1024);
+            
+            // Grass pattern
+            for (let i = 0; i < 20000; i++) {
+                const x = Math.random() * 1024;
+                const y = Math.random() * 1024;
+                const length = Math.random() * 3 + 1;
+                const angle = Math.random() * Math.PI;
+                
+                ctx.strokeStyle = `rgba(20, 120, 40, ${Math.random() * 0.5 + 0.3})`;
+                ctx.lineWidth = Math.random() * 0.5 + 0.2;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(
+                    x + Math.cos(angle) * length,
+                    y + Math.sin(angle) * length
+                );
+                ctx.stroke();
+            }
+            
+            // Pitch markings
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(512, 512, 100, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Center line
+            ctx.beginPath();
+            ctx.moveTo(512, 0);
+            ctx.lineTo(512, 1024);
+            ctx.stroke();
+            
+            return canvas;
+        }
+
+        // GAME LOOP
+        let clock = new THREE.Clock();
+        let lastTime = 0;
+
+        function gameLoop(currentTime) {
+            requestAnimationFrame(gameLoop);
+            
+            const deltaTime = Math.min(clock.getDelta(), 0.1);
+            const elapsedTime = currentTime - lastTime;
+            
+            if (elapsedTime > 1000) {
+                gameState.time -= 1;
+                if (gameState.time <= 0) {
+                    gameState.isPlaying = false;
+                    gameState.time = 0;
+                }
+                
+                // Update time display
+                const minutes = Math.floor(gameState.time / 60);
+                const seconds = gameState.time % 60;
+                document.getElementById('time').textContent = 
+                    `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                lastTime = currentTime;
+            }
+            
+            if (!gameState.isPlaying) return;
+            
+            // Update physics
+            world.step(CONFIG.physicsSteps, deltaTime, 3);
+            
+            // Update game logic
+            updatePlayerMovement(deltaTime);
+            updateAI();
+            updatePowerShot();
+            checkGoals();
+            
+            // Sync ball graphics with physics
+            ballMesh.position.copy(ballBody.position);
+            ballMesh.quaternion.copy(ballBody.quaternion);
+            
+            // Update players
+            players.kele.update(deltaTime);
+            players.lele.update(deltaTime);
+            
+            // Update camera focus
+            const targetPos = new THREE.Vector3();
+            targetPos.lerpVectors(
+                players.kele.mesh.position,
+                ballMesh.position,
+                0.3
+            );
+            
+            camera.lookAt(targetPos);
+            controls.update();
+            
+            renderer.render(scene, camera);
+        }
+
+        // RESIZE HANDLER
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // START GAME
+        gameLoop();
+
+        // AUDIO (would need actual audio files)
+        function playSound(soundName) {
+            // Implement sound playback here
+            console.log(`Playing sound: ${soundName}`);
+        }
+
+        // TOUCH PREVENTION
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.id === 'joystick-area' || e.target.id === 'shoot-btn') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+    </script>
 </body>
 </html>
